@@ -52,11 +52,32 @@ defmodule Link_VerteilerTest do
     end
 
   end
-  #TODO Test Broadcast
-  defp broadcast(home_pid) do
+
+  @tag timeout: 3000
+  test "broadcast" do
+    testm = %Message{receiver: self(), sender: self(), type: "test", data: "hello", size: 10}
+    self_pid = self()
+    broadtest1 = spawn(fn -> Link_VerteilerTest.broadcast(self_pid)end)
+    broadtest2 = spawn(fn -> Link_VerteilerTest.broadcast(self_pid)end)
+    verteiler_pid = spawn(fn -> Link_Verteiler.start_link_verteiler() end)
+    send  verteiler_pid, {:CreateUpdate_link, broadtest1, 1}
+    send  verteiler_pid, {:CreateUpdate_link, broadtest2, 1}
+    send verteiler_pid, {:broadcast, testm}
     receive do
-      {:packet , sending_link, x} ->
-        # code
+      {:test_ok} ->
+        receive do
+          {:test_ok} ->
+            assert true
+        end
+
+    end
+
+  end
+
+  def broadcast(home_pid) do
+    receive do
+      {:packet , _sending_link, _x} ->
+        send home_pid,{:test_ok}
     end
 
   end
