@@ -24,3 +24,6 @@ netzwerk-*.tar
 
 .elixir_ls/dialyzer_manifest_22.2_elixir-1.10.3_test
 
+.elixir_ls/temp_beams/Elixir.RouterTest.beam
+.elixir_ls/temp_beams/Elixir.Link_VerteilerTest.beam
+.elixir_ls/temp_beams/Elixir.Link_pidTest.beam
