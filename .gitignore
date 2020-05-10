@@ -22,3 +22,5 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 netzwerk-*.tar
 
+.elixir_ls/dialyzer_manifest_22.2_elixir-1.10.3_test
+
