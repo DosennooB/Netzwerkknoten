@@ -43,3 +43,8 @@ netzwerk-*.tar
 .elixir_ls/build/test/lib/netzwerk/ebin/Elixir.Message.beam
 .elixir_ls/build/test/lib/netzwerk/ebin/Elixir.Router.beam
 
+.elixir_ls/dialyzer_manifest_22.0_elixir-1.10.2_test
+
+.elixir_ls/build/test/lib/netzwerk/ebin/Elixir.Routingtable.beam
+.elixir_ls/dialyzer_tmp/.elixir_ls/build/test/lib/netzwerk/ebin/Elixir.Routingtable.beam
+.elixir_ls/build/test/lib/netzwerk/ebin/netzwerk.app
