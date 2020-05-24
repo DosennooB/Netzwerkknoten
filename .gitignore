@@ -22,29 +22,5 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 netzwerk-*.tar
 
-.elixir_ls/dialyzer_manifest_22.2_elixir-1.10.3_test
+/.elixir_ls/
 
-.elixir_ls/temp_beams/Elixir.RouterTest.beam
-.elixir_ls/temp_beams/Elixir.Link_VerteilerTest.beam
-.elixir_ls/temp_beams/Elixir.Link_pidTest.beam
-.elixir_ls/build/test/lib/netzwerk/.mix/compile.elixir
-
-.elixir_ls/dialyzer_manifest_22.0_elixir-1.10.2_test
-.elixir_ls/build/test/lib/netzwerk/.mix/compile.elixir
-.elixir_ls/build/test/lib/netzwerk/.mix/compile.elixir_scm
-.elixir_ls/build/test/lib/netzwerk/consolidated/Elixir.Collectable.beam
-.elixir_ls/build/test/lib/netzwerk/consolidated/Elixir.Enumerable.beam
-.elixir_ls/build/test/lib/netzwerk/consolidated/Elixir.IEx.Info.beam
-.elixir_ls/build/test/lib/netzwerk/consolidated/Elixir.Inspect.beam
-.elixir_ls/build/test/lib/netzwerk/consolidated/Elixir.List.Chars.beam
-.elixir_ls/build/test/lib/netzwerk/consolidated/Elixir.String.Chars.beam
-.elixir_ls/build/test/lib/netzwerk/ebin/Elixir.Link_pid.beam
-.elixir_ls/build/test/lib/netzwerk/ebin/Elixir.Link_Verteiler.beam
-.elixir_ls/build/test/lib/netzwerk/ebin/Elixir.Message.beam
-.elixir_ls/build/test/lib/netzwerk/ebin/Elixir.Router.beam
-
-.elixir_ls/dialyzer_manifest_22.0_elixir-1.10.2_test
-
-.elixir_ls/build/test/lib/netzwerk/ebin/Elixir.Routingtable.beam
-.elixir_ls/dialyzer_tmp/.elixir_ls/build/test/lib/netzwerk/ebin/Elixir.Routingtable.beam
-.elixir_ls/build/test/lib/netzwerk/ebin/netzwerk.app
