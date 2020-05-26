@@ -5,7 +5,8 @@ defmodule Routingtable do
   ## Parameter
   - {:rout_get_routingtable, pid} : gibt die Routingtable zurück an der Sender
 
-  - {:rout_set_routingtable, table_new} : setzt die Routingtable des Prozesses neu die sie bekommen
+  - {:rout_set_routingtable, con_pid, table_new} : setzt die Routingtable des Prozesses neu wen sie
+  von Connection kommt
 
   - {:rout_message, m = %Message{}} : ermittelt den nächsten hop vom Weg zu ziel und gibt die nachricht zur
   weiteren Verarbeitung weiter
@@ -33,7 +34,7 @@ defmodule Routingtable do
         send pid, {:rout_routingtable, table}
         routingtable(link_pid, con_pid, table)
 
-      {:rout_set_routingtable, table_new} ->
+      {:rout_set_routingtable, con_pid, table_new} ->
         routingtable(link_pid, con_pid, table_new)
 
       {:rout_message, m = %Message{}} ->
