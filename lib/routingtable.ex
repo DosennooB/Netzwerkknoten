@@ -1,19 +1,30 @@
 defmodule Routingtable do
+  @moduledoc """
+  Modul sogrt für die verwaltung der Routingtabelle und controliert die Linkverteiler
+
+  ## Parameter
+  - {:rout_get_routingtable, pid} : gibt die Routingtable zurück an der Sender
+
+  - {:rout_set_routingtable, table_new} : setzt die Routingtable des Prozesses neu die sie bekommen
+
+  - {:rout_message, m = %Message{}} : ermittelt den nächsten hop vom Weg zu ziel und gibt die nachricht zur
+  weiteren Verarbeitung weiter
+
+  - {:rout_broadcast, m = %Message{}} : gibt die Nachricht an alle weiteren angeschlossenen Router weiter
+
+  - {:conection_pid, con_pid_new} : bekommt einen neue PID des Connection Prozesses
+  """
   def start_routingtable do
+      receive do
+        {:conection_pid, con_pid} ->
+          send con_pid, {:get_routingtable, self()}
 
-    receive do
-      {:link_verteiler_pid, link_pid} ->
-
-        receive do
-          {:conection_pid, con_pid} ->
-            send con_pid, {:get_routingtable, self()}
-
-            receive do
-              {:set_routingtable, table} ->
-                routingtable(link_pid, con_pid, table)
-            end
-        end
-    end
+          receive do
+            {:set_routingtable, table} ->
+              link_pid = spawn_link(fn -> Link_Verteiler.start_link_verteiler() end)
+              routingtable(link_pid, con_pid, table)
+          end
+      end
   end
 
   defp routingtable(link_pid, con_pid, table) do
@@ -29,13 +40,11 @@ defmodule Routingtable do
         hop = Keyword.get_values(table, m.receiver)
         send link_pid, {:sending, hop, m}
 
-      {:link_verteiler_pid, link_pid_new} ->
-        routingtable(link_pid_new, con_pid, table)
+      {:rout_broadcast, m = %Message{}} ->
+        send link_pid, {:broadcast, m}
 
       {:conection_pid, con_pid_new} ->
         routingtable(link_pid, con_pid_new, table)
-#TODO
     end
-
   end
 end
