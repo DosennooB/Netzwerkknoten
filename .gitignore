@@ -23,4 +23,8 @@ erl_crash.dump
 netzwerk-*.tar
 
 /.elixir_ls/
+/build/
 
+
+.elixir_ls/dialyzer_manifest_22.2_elixir-1.10.3_test
+.elixir_ls/dialyzer_manifest_22.0_elixir-1.10.2_test
