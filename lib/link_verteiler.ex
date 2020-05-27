@@ -48,7 +48,7 @@ defmodule Link_Verteiler do
 
     end
   end
-
+#TODO wenn ein fehler passiert an alle links das Kill Signal senden
   defp broadcast([h | t], m = %Message{}) do
     send(h, {:sending, m})
     broadcast(t, m)
