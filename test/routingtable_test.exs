@@ -10,6 +10,31 @@ defmodule Routingtable_test do
       {:rout_routingtable, value} ->
         assert value == %{self() => self()}
     end
+  end
+
+  @tag timeout: 3000
+  test "setze Routingtable" do
+    routing_pid = startup()
+    new_table = %{routing_pid => routing_pid}
+    send routing_pid, {:rout_set_routingtable, self(), new_table}
+
+    send routing_pid, {:rout_get_routingtable, self()}
+    receive do
+      {:rout_routingtable, value} ->
+        assert value == new_table
+    end
+
+  end
+
+  @tag timeout: 3000
+  test "kann Routingtable nicht setzten" do
+    routing_pid = startup()
+    send routing_pid, {:rout_set_routingtable, routing_pid, %{routing_pid => routing_pid}}
+    send routing_pid, {:rout_get_routingtable, self()}
+    receive do
+      {:rout_routingtable, value} ->
+        assert value == %{self() => self()}
+    end
 
   end
 

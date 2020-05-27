@@ -14,35 +14,36 @@ defmodule Routingtable do
   - {:rout_broadcast, m = %Message{}} : gibt die Nachricht an alle weiteren angeschlossenen Router weiter
 
   - {:conection_pid, con_pid_new} : bekommt einen neue PID des Connection Prozesses
+
   """
   def start_routingtable do
-      receive do
-        {:conection_pid, con_pid} ->
-          send con_pid, {:get_routingtable, self()}
+    receive do
+      {:conection_pid, con_pid} ->
+        send(con_pid, {:get_routingtable, self()})
 
-          receive do
-            {:set_routingtable, table} ->
-              link_pid = spawn_link(fn -> Link_Verteiler.start_link_verteiler() end)
-              routingtable(link_pid, con_pid, table)
-          end
-      end
+        receive do
+          {:set_routingtable, table} ->
+            link_pid = spawn_link(fn -> Link_Verteiler.start_link_verteiler() end)
+            routingtable(link_pid, con_pid, table)
+        end
+    end
   end
 
   defp routingtable(link_pid, con_pid, table) do
     receive do
       {:rout_get_routingtable, pid} ->
-        send pid, {:rout_routingtable, table}
+        send(pid, {:rout_routingtable, table})
         routingtable(link_pid, con_pid, table)
 
-      {:rout_set_routingtable, con_pid, table_new} ->
+      {:rout_set_routingtable, ^con_pid, table_new} ->
         routingtable(link_pid, con_pid, table_new)
 
       {:rout_message, m = %Message{}} ->
         hop = Keyword.get_values(table, m.receiver)
-        send link_pid, {:sending, hop, m}
+        send(link_pid, {:sending, hop, m})
 
       {:rout_broadcast, m = %Message{}} ->
-        send link_pid, {:broadcast, m}
+        send(link_pid, {:broadcast, m})
 
       {:conection_pid, con_pid_new} ->
         routingtable(link_pid, con_pid_new, table)
