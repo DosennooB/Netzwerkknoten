@@ -16,6 +16,9 @@ defmodule Routingtable do
   - {:conection_pid, con_pid_new} : bekommt einen neue PID des Connection Prozesses
 
   """
+  @type con_pid :: pid
+  @type link_pid :: pid
+
   def start_routingtable() do
     receive do
       {:conection_pid, con_pid} ->
@@ -37,7 +40,7 @@ defmodule Routingtable do
         routingtable(link_pid, con_pid, table, hoptable)
 
       {:rout_set_routingtable, ^con_pid, table_new, hoptable_new} ->
-        # TODO setting new hops for link pid
+        vergleicheRoutingtable(link_pid, hoptable, hoptable_new, Map.keys(hoptable_new))
         routingtable(link_pid, con_pid, table_new, hoptable_new)
 
       {:rout_message, m = %Message{}} ->
@@ -51,6 +54,7 @@ defmodule Routingtable do
 
       {:conection_pid, con_pid_new} ->
         routingtable(link_pid, con_pid_new, table, hoptable)
+
     end
   end
 
@@ -68,7 +72,19 @@ defmodule Routingtable do
   defp initRoutingtable(_link_pid, _hoptable, []) do
   end
 
-  defp vergleicheRoutingtable(link_pid, hoptabel, hoptable_new) do
-    #TODO vergleich für set table
+  defp vergleicheRoutingtable(link_pid, hoptable, hoptable_new, [h|t]) do
+    {x,ht} = Map.pop(hoptable, h, nil)
+    {y,htn} = Map.pop(hoptable_new, h, nil)
+    cond do
+      x==y ->
+        nil
+      true ->
+        send(link_pid, {:CreateUpdate_link, h, y})
+    end
+    vergleicheRoutingtable(link_pid, ht, htn, t)
+  end
+
+  defp vergleicheRoutingtable(link_pid, hoptable, _hoptable_new, []) do
+    Enum.map(hoptable, fn{k,_v} -> send(link_pid, {:kill_link, k}) end )
   end
 end
