@@ -65,6 +65,18 @@ defmodule Routingtable_test do
   end
 
   @tag timeout: 3000
+  test "sende broadcast message wenn pid nicht in table" do
+    routing_pid = startup()
+    testm = %Message{receiver: routing_pid, sender: self(), type: "test", data: "hello", size: 10}
+    testantwort = %Message{receiver: routing_pid, sender: self(), type: "test", data: "hello", size: 10, ttl: 63}
+    send routing_pid, {:rout_broadcast, testm}
+    receive do
+      {:packet , _sending_link, x} ->
+        assert x == testantwort
+    end
+  end
+
+  @tag timeout: 3000
   test "neuer Link in Routingtable ein gefügt und erstellt" do
     self_pid = self()
     testm = %Message{receiver: self(), sender: self(), type: "test", data: "hello", size: 10}

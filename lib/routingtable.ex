@@ -44,7 +44,9 @@ defmodule Routingtable do
         routingtable(link_pid, con_pid, table_new, hoptable_new)
 
       {:rout_message, m = %Message{}} ->
-        hop = Map.get(table, m.receiver)
+        hop = Map.get_lazy(table, m.receiver, fn ->
+          Map.values(table)|> Enum.random()
+        end)
         send(link_pid, {:sending, hop, m})
         routingtable(link_pid, con_pid, table, hoptable)
 
