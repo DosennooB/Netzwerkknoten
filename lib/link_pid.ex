@@ -4,6 +4,7 @@ defmodule Link_pid do
   gewünschten Verzögerung abzuschicken.
 
   ## Parameter
+  - link_pid : Pid zum schicken des nächsten routers.
   - {:sending, Message} : sendet die Message an den nächsten Router.
   Verringert die ttl
 
