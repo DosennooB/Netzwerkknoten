@@ -162,7 +162,7 @@ defmodule Routingtable_test do
     selfPID = self()
     routing_pid = spawn(fn ->Routingtable.start_routingtable() end)
     send routing_pid, {:conection_pid, selfPID}
-    send routing_pid, {:set_routingtable, self(), %{self() => self()}, %{self() => 1}}
+    send routing_pid, {:rout_set_routingtable, self(), %{self() => self()}, %{self() => 1}}
     routing_pid
   end
 

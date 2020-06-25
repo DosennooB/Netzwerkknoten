@@ -15,17 +15,24 @@ defmodule Routingtable do
 
   - {:conection_pid, con_pid_new} : bekommt einen neue PID des Connection Prozesses
 
-  """
-  @type con_pid :: pid
-  @type link_pid :: pid
+  - tabel ist eine Map die aus den Ziel_pid (key) und dem dazu gehörigen Hop_pid (value) besteht
 
+  - hopptable (key) die Hopp_pid (value) die kosten der Hoppverbindungen
+  """
+  @type con_pid :: pid()
+  @type link_pid :: pid()
+  @type table :: %{pid()=> pid()}
+  @type hoptable :: map()
+
+  @doc """
+  Startet den Prozess in dem es die PID des Prozesses connection bekommt und
+  und eine Touting tablle bekommet
+  """
   def start_routingtable() do
     receive do
       {:conection_pid, con_pid} ->
-        send(con_pid, {:get_routingtable, self()})
-
         receive do
-          {:set_routingtable, ^con_pid, table, hoptable} ->
+          {:rout_set_routingtable, ^con_pid, table, hoptable} ->
             link_pid = spawn_link(fn -> Link_Verteiler.start_link_verteiler() end)
             initRoutingtable(link_pid, hoptable)
             routingtable(link_pid, con_pid, table, hoptable)
