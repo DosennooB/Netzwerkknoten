@@ -9,12 +9,14 @@ defmodule Pathfinder do
   @type startpoint :: pid
   def new_routingtable(g = %Graph{}, startpoint) do
     reach = Graph.reachable(g, [startpoint])
-    #Hopptable generierung
-    m = Map.new()
-    hoptb = Graph.out_edges(g, startpoint)
-    |> Enum.map( fn x = %Graph.Edge{} -> Map.put(m, x.v2, x.weight) end)
+    edges = Graph.out_edges(g, startpoint)
+
+    hoptb = make_hoptable(Map.new(), edges)
+
     new_routingtable(g, startpoint, Map.new(), hoptb, reach)
   end
+
+
   def new_routingtable(g = %Graph{}, startpoint, routingtable , hoptb, [h|t]) do
     path = Graph.dijkstra(g, startpoint, h)
     |> List.delete_at(0)
@@ -29,7 +31,17 @@ defmodule Pathfinder do
   def add_to_routingtable(routingtable, [h|t], hopp) do
     add_to_routingtable(Map.put(routingtable,h,hopp),t, hopp)
   end
+
   def add_to_routingtable(routingtable,[], _hopp) do
     routingtable
   end
+
+  def make_hoptable(hoptb, [ h = %Graph.Edge{} |t]) when is_map(hoptb) do
+    make_hoptable(Map.put(hoptb, h.v2, h.weight), t)
+  end
+
+  def make_hoptable(hoptb, []) when is_map(hoptb) do
+    hoptb
+  end
+
 end
