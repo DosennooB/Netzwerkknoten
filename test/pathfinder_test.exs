@@ -7,9 +7,36 @@ defmodule PathfinderTest do
     g = Graph.new()
     |> Graph.add_edge( self(), self())
     |> Graph.add_edge( self(), :v2 )
-    |> Graph.add_edge( :v2,:v3)
-    e = Pathfinder.new_routingtable(g, self())
-    assert true
+    |> Graph.add_edge( self(),:v3)
+    [e|x] = Pathfinder.new_routingtable(g, self())
+    [j|_h] = x
+    assert Map.get(e,self()) == self()
+    assert Map.get(e,:v2) == :v2
+    assert Map.get(e,:v3) == :v3
+    assert Map.get(j, self()) == 1
+    assert Map.get(j, :v2) == 1
+    assert Map.get(j, :v3) == 1
   end
+
+   @tag timeout: 1000
+   test "Test Kanten Gewichte" do
+     g = Graph.new()
+     |>Graph.add_edge(self(),self(), weight: 3)
+     [_e|x] = Pathfinder.new_routingtable(g, self())
+     [j|_h] = x
+     assert Map.get(j, self()) == 3
+   end
+
+
+   @tag timeout: 1000
+   test "nehme günstigstigste Route" do
+     g = Graph.new()
+     |>Graph.add_edge(self(), self())
+     |>Graph.add_edge(self(), :v1, weight: 3)
+     |>Graph.add_edge(self(), :v2, weight: 10)
+     |>Graph.add_edge(:v1, :v2, weight: 2)
+     [e|_x] = Pathfinder.new_routingtable(g, self())
+     assert Map.get(e, :v2) == :v1
+   end
 
 end
