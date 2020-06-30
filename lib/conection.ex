@@ -23,15 +23,33 @@ Verwaltet die Graphen um die Routingtablle zu be
     receive do
       {:con_add_link, m = %Message{}} ->
         ng = newlink(g , m.data, routingtable_pid)
-        _rg = graphReduzieren(ng, router_pid)
-        #TODO Routingtable erstellen
-        #TODO Hoptable erstellen
-      {:con_remove_link, m = %Message{}} ->
-        true
-        #TODO
-      {:con_remove_router, value} ->
-        true
-        #TODO
+        #Routingtable und Hoptable erstellen
+        [routingtable|x] = Pathfinder.new_routingtable(ng, router_pid)
+        [hoptb|_r] = x
+
+        send routingtable_pid, {:rout_set_routingtable, self(), routingtable, hoptb}
+        conection(ng, router_pid, routingtable_pid)
+
+      {:con_remove_link, m = %Message{}}  ->
+        ng = Graph.delete_edge(g, m.data.v1, m.data.v2)
+        |> graphReduzieren(router_pid)
+        #Routingtable und Hoptable erstellen
+        [routingtable|x] = Pathfinder.new_routingtable(ng, router_pid)
+        [hoptb|_r] = x
+
+        send routingtable_pid, {:rout_set_routingtable, self(), routingtable, hoptb}
+        conection(ng, router_pid, routingtable_pid)
+
+      {:con_remove_router, m = %Message{}} ->
+        ng = Graph.delete_vertex(g, m.data)
+        |> graphReduzieren(router_pid)
+
+        #Routingtable und Hoptable erstellen
+        [routingtable|x] = Pathfinder.new_routingtable(ng, router_pid)
+        [hoptb|_r] = x
+
+        send routingtable_pid, {:rout_set_routingtable, self(), routingtable, hoptb}
+        conection(ng, router_pid, routingtable_pid)
     end
   end
 
