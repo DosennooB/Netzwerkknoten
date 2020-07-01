@@ -57,7 +57,7 @@ Verwaltet die Graphen um die Routingtablle zu be
   fügt dem Graph neue Kanten hinzu und updated die Kanten wenn sie alt sind.
   Wenn eine Kante erstellt wird oder verändert wird, wird ein Broadcast gesendet.
   """
-  defp newlink(g = %Graph{}, [e=%Graph.Edge{} | t],routingtable_pid) do
+  defp newlink(g = %Graph{}, [e=%Graph.Edge{} | t], routingtable_pid) do
     edgebroadcast = %Message{receiver: routingtable_pid, sender: routingtable_pid, type: :new_link, data: e, size: 4}
     case Graph.edges(g, e.v1, e.v2) do
       [h = %Graph.Edge{}|_t] ->
@@ -73,6 +73,16 @@ Verwaltet die Graphen um die Routingtablle zu be
         send routingtable_pid, {:rout_broadcast, edgebroadcast}
         Graph.add_edge(g, e)
         |> newlink( t, routingtable_pid)
+
+        #wenn es eine aus gegenden Kannte ist wird dem nachtbarn der komplette graph geschickt
+        case e.v1 == routingtable_pid do
+          true ->
+            ae = Graph.edges(g)
+            alledge = %Message{receiver: routingtable_pid, sender: routingtable_pid, type: :new_link, data: ae, size: 4}
+            send e.v2, {:rout_broadcast, alledge}
+          false ->
+            nil
+        end
     end
   end
 
