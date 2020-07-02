@@ -69,11 +69,11 @@ Verwaltet die Graphen um die Routingtablle zu be
           true ->
             newlink(g, t, routingtable_pid)
         end
+
       [] ->
         send routingtable_pid, {:rout_broadcast, edgebroadcast}
-        Graph.add_edge(g, e)
+        ng = Graph.add_edge(g, e)
         |> newlink( t, routingtable_pid)
-
         #wenn es eine aus gegenden Kannte ist wird dem nachtbarn der komplette graph geschickt
         case e.v1 == routingtable_pid do
           true ->
@@ -83,6 +83,7 @@ Verwaltet die Graphen um die Routingtablle zu be
           false ->
             nil
         end
+        ng
     end
   end
 
