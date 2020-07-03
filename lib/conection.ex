@@ -77,7 +77,7 @@ Verwaltet die Graphen um die Routingtablle zu be
         #wenn es eine aus gegenden Kannte ist wird dem nachtbarn der komplette graph geschickt
         case e.v1 == routingtable_pid do
           true ->
-            ae = Graph.edges(g)
+            ae = Graph.edges(ng)
             alledge = %Message{receiver: routingtable_pid, sender: routingtable_pid, type: :new_link, data: ae, size: 4}
             send e.v2, {:rout_broadcast, alledge}
           false ->
