@@ -25,7 +25,7 @@ defmodule Pathfinder do
     new_routingtable(g, startpoint, rtn, hoptb, t -- path)
   end
   def new_routingtable(_g = %Graph{}, _startpoint, routingtable, hoptb, []) do
-    [routingtable,hoptb]
+    {routingtable,hoptb}
   end
 
   def add_to_routingtable(routingtable, [h|t], hopp) do

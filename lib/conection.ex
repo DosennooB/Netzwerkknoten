@@ -24,29 +24,36 @@ Verwaltet die Graphen um die Routingtablle zu be
       {:con_add_link, m = %Message{}} ->
         ng = newlink(g , m.data, routingtable_pid)
         #Routingtable und Hoptable erstellen
-        [routingtable|x] = Pathfinder.new_routingtable(ng, router_pid)
-        [hoptb|_r] = x
+        {routingtable,hoptb} = Pathfinder.new_routingtable(ng, router_pid)
+
 
         send routingtable_pid, {:rout_set_routingtable, self(), routingtable, hoptb}
         conection(ng, router_pid, routingtable_pid)
 
       {:con_remove_link, m = %Message{}}  ->
-        ng = Graph.delete_edge(g, m.data.v1, m.data.v2)
-        |> graphReduzieren(router_pid)
-        #Routingtable und Hoptable erstellen
-        [routingtable|x] = Pathfinder.new_routingtable(ng, router_pid)
-        [hoptb|_r] = x
-
-        send routingtable_pid, {:rout_set_routingtable, self(), routingtable, hoptb}
-        conection(ng, router_pid, routingtable_pid)
+        case Graph.edges(g, m.v1, m.v2) do
+          [h = %Graph.Edge{}|_t] ->
+            if h.v1 == router_pid and h.v2 == router_pid do
+              conection(g, router_pid, routingtable_pid)
+            else
+              ng = Graph.delete_edge(g, m.data.v1, m.data.v2)
+              |> graphReduzieren(router_pid)
+              #Routingtable und Hoptable erstellen
+              {routingtable,hoptb} = Pathfinder.new_routingtable(ng, router_pid)
+              send routingtable_pid, {:rout_broadcast, m}
+              send routingtable_pid, {:rout_set_routingtable, self(), routingtable, hoptb}
+              conection(ng, router_pid, routingtable_pid)
+            end
+          [] ->
+            conection(g, router_pid, routingtable_pid)
+        end
 
       {:con_remove_router, m = %Message{}} ->
         ng = Graph.delete_vertex(g, m.data)
         |> graphReduzieren(router_pid)
 
         #Routingtable und Hoptable erstellen
-        [routingtable|x] = Pathfinder.new_routingtable(ng, router_pid)
-        [hoptb|_r] = x
+        {routingtable,hoptb} = Pathfinder.new_routingtable(ng, router_pid)
 
         send routingtable_pid, {:rout_set_routingtable, self(), routingtable, hoptb}
         conection(ng, router_pid, routingtable_pid)
@@ -57,7 +64,7 @@ Verwaltet die Graphen um die Routingtablle zu be
   fügt dem Graph neue Kanten hinzu und updated die Kanten wenn sie alt sind.
   Wenn eine Kante erstellt wird oder verändert wird, wird ein Broadcast gesendet.
   """
-  defp newlink(g = %Graph{}, [e=%Graph.Edge{} | t], routingtable_pid) do
+  def newlink(g = %Graph{}, [e=%Graph.Edge{} | t], routingtable_pid) do
     edgebroadcast = %Message{receiver: routingtable_pid, sender: routingtable_pid, type: :new_link, data: e, size: 4}
     case Graph.edges(g, e.v1, e.v2) do
       [h = %Graph.Edge{}|_t] ->
@@ -73,8 +80,7 @@ Verwaltet die Graphen um die Routingtablle zu be
       [] ->
         send routingtable_pid, {:rout_broadcast, edgebroadcast}
         ng = Graph.add_edge(g, e)
-        |> newlink( t, routingtable_pid)
-        #wenn es eine aus gegenden Kannte ist wird dem nachtbarn der komplette graph geschickt
+        #wenn es eine aus gehenden Kannte ist wird dem nachtbarn der komplette graph geschickt
         case e.v1 == routingtable_pid do
           true ->
             ae = Graph.edges(ng)
@@ -83,11 +89,11 @@ Verwaltet die Graphen um die Routingtablle zu be
           false ->
             nil
         end
-        ng
+        newlink(ng , t ,routingtable_pid)
     end
   end
 
-  defp newlink(g = %Graph{}, [], _routingtable_pid) do
+  def newlink(g = %Graph{}, [], _routingtable_pid) do
     g
   end
 
@@ -95,7 +101,7 @@ Verwaltet die Graphen um die Routingtablle zu be
   Reduziert den Graph des aktullen Routers auf die Knoten die den
   Router erreichen und vom Router erreicht werden
   """
-  defp graphReduzieren(g, router_pid) do
+  def graphReduzieren(g, router_pid) do
     vreacheble = Graph.reachable(g, router_pid)
     vreaching = Graph.reaching(g, router_pid)
     vertexnew = Enum.uniq(vreacheble ++vreaching)
