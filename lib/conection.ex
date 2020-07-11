@@ -49,14 +49,17 @@ Verwaltet die Graphen um die Routingtablle zu be
         end
 
       {:con_remove_router, m = %Message{}} ->
-        ng = Graph.delete_vertex(g, m.data)
-        |> graphReduzieren(router_pid)
-
-        #Routingtable und Hoptable erstellen
-        {routingtable,hoptb} = Pathfinder.new_routingtable(ng, router_pid)
-
-        send routingtable_pid, {:rout_set_routingtable, self(), routingtable, hoptb}
-        conection(ng, router_pid, routingtable_pid)
+        if m.data == router_pid do
+          conection(g, router_pid, routingtable_pid)
+        else
+          ng = Graph.delete_vertex(g, m.data)
+          |> graphReduzieren(router_pid)
+          #Routingtable und Hoptable erstellen
+          send routingtable_pid, {:rout_broadcast, m}
+          {routingtable,hoptb} = Pathfinder.new_routingtable(ng, router_pid)
+          send routingtable_pid, {:rout_set_routingtable, self(), routingtable, hoptb}
+          conection(ng, router_pid, routingtable_pid)
+        end
     end
   end
 

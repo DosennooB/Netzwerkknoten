@@ -238,7 +238,7 @@ defmodule ConectionTest do
   end
 
   @tag timeout: 3000
-  test "lösche einen Blatt Router" do
+  test "lösche link zu einem Blatt Router" do
     selfPID = self()
     #Baue zwei weitere Kannten mit e1 selfPID, umleitenPID und e2 umleitenPID, :v1
     {con_pid,umleitenPID } = startup_zu_loeschen(selfPID)
@@ -264,12 +264,11 @@ defmodule ConectionTest do
         assert nil== Map.get(routingtable, :v1)
         assert 1 == Map.get(hoptb, selfPID)
         assert 3 == Map.get(hoptb, umleitenPID)
-        assert nil == Map.get(hoptb, :v1)
     end
   end
 
   @tag timeout: 3000
-  test "lösche einen Knotenroter" do
+  test "lösche link zu einem Knotenroter" do
     selfPID = self()
     #Baue zwei weitere Kannten mit e1 selfPID, umleitenPID und e2 umleitenPID, :v1
     {con_pid,umleitenPID } = startup_zu_loeschen(selfPID)
@@ -294,7 +293,86 @@ defmodule ConectionTest do
         assert nil== Map.get(routingtable, :v1)
         assert 1 == Map.get(hoptb, selfPID)
         assert nil == Map.get(hoptb, umleitenPID)
-        assert nil == Map.get(hoptb, :v1)
+    end
+  end
+
+  @tag timeout: 3000
+  test "entferne einen Blattrouter" do
+    selfPID = self()
+    #Baue zwei weitere Kannten mit e1 selfPID, umleitenPID und e2 umleitenPID, :v1
+    {con_pid,umleitenPID } = startup_zu_loeschen(selfPID)
+
+    delblatt = %Message{
+      receiver: self(),
+      sender: self(),
+      type: :del_link,
+      data: :v1,
+      size: 4
+    }
+    send con_pid, {:con_remove_router, delblatt}
+    receive do
+      {:rout_broadcast, m = %Message{}} ->
+        assert m == delblatt
+    end
+    receive do
+      {:rout_set_routingtable, ^con_pid, routingtable, hoptb } ->
+        assert selfPID == Map.get(routingtable, selfPID)
+        assert umleitenPID == Map.get(routingtable, umleitenPID)
+        assert nil== Map.get(routingtable, :v1)
+        assert 1 == Map.get(hoptb, selfPID)
+        assert 3 == Map.get(hoptb, umleitenPID)
+    end
+  end
+
+  @tag timeout: 3000
+  test "entferne einen Knotenrouter" do
+    selfPID = self()
+    #Baue zwei weitere Kannten mit e1 selfPID, umleitenPID und e2 umleitenPID, :v1
+    {con_pid,umleitenPID } = startup_zu_loeschen(selfPID)
+
+    delknoten = %Message{
+      receiver: self(),
+      sender: self(),
+      type: :del_link,
+      data: umleitenPID,
+      size: 4
+    }
+    send con_pid, {:con_remove_router, delknoten}
+    receive do
+      {:rout_broadcast, m = %Message{}} ->
+        assert m == delknoten
+    end
+    receive do
+      {:rout_set_routingtable, ^con_pid, routingtable, hoptb} ->
+        assert selfPID == Map.get(routingtable, selfPID)
+        assert nil == Map.get(routingtable, umleitenPID)
+        assert nil== Map.get(routingtable, :v1)
+        assert 1 == Map.get(hoptb, selfPID)
+        assert nil == Map.get(hoptb, umleitenPID)
+    end
+  end
+
+
+  @tag timeout: 3000
+  test "entferne eigene Router" do
+    selfPID = self()
+    #Baue zwei weitere Kannten mit e1 selfPID, umleitenPID und e2 umleitenPID, :v1
+    {con_pid,_umleitenPID } = startup_zu_loeschen(selfPID)
+
+    delself = %Message{
+      receiver: self(),
+      sender: self(),
+      type: :del_link,
+      data: selfPID,
+      size: 4
+    }
+    send con_pid, {:con_remove_router, delself}
+    receive do
+      {:rout_set_routingtable, _value} ->
+        assert false
+    after
+      0_600 ->
+        assert true
     end
   end
 
