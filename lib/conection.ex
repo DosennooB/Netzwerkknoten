@@ -31,7 +31,7 @@ Verwaltet die Graphen um die Routingtablle zu be
         conection(ng, router_pid, routingtable_pid)
 
       {:con_remove_link, m = %Message{}}  ->
-        case Graph.edges(g, m.v1, m.v2) do
+        case Graph.edges(g, m.data.v1, m.data.v2) do
           [h = %Graph.Edge{}|_t] ->
             if h.v1 == router_pid and h.v2 == router_pid do
               conection(g, router_pid, routingtable_pid)
@@ -60,6 +60,7 @@ Verwaltet die Graphen um die Routingtablle zu be
     end
   end
 
+  @spec newlink(Graph.t(), [Graph.Edge.t()], any) :: Graph.t()
   @doc """
   fügt dem Graph neue Kanten hinzu und updated die Kanten wenn sie alt sind.
   Wenn eine Kante erstellt wird oder verändert wird, wird ein Broadcast gesendet.
@@ -102,8 +103,8 @@ Verwaltet die Graphen um die Routingtablle zu be
   Router erreichen und vom Router erreicht werden
   """
   def graphReduzieren(g, router_pid) do
-    vreacheble = Graph.reachable(g, router_pid)
-    vreaching = Graph.reaching(g, router_pid)
+    vreacheble = Graph.reachable(g, [router_pid])
+    vreaching = Graph.reaching(g, [router_pid])
     vertexnew = Enum.uniq(vreacheble ++vreaching)
     vertexdel = Graph.vertices(g) -- vertexnew
     Graph.delete_vertices(g, vertexdel)
