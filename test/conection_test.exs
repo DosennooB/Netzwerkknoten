@@ -240,13 +240,62 @@ defmodule ConectionTest do
   @tag timeout: 3000
   test "lösche einen Blatt Router" do
     selfPID = self()
-    con_pid = startup_zu_loeschen(selfPID)
-    assert true
+    #Baue zwei weitere Kannten mit e1 selfPID, umleitenPID und e2 umleitenPID, :v1
+    {con_pid,umleitenPID } = startup_zu_loeschen(selfPID)
+    e1 = %Graph.Edge{v1: umleitenPID, v2: :v1}
+
+    delblatt = %Message{
+      receiver: self(),
+      sender: self(),
+      type: :del_link,
+      data: e1,
+      size: 4
+    }
+
+    send con_pid, {:con_remove_link, delblatt}
+    receive do
+      {:rout_broadcast, m = %Message{}} ->
+        assert m == delblatt
+    end
+    receive do
+      {:rout_set_routingtable, ^con_pid, routingtable, hoptb } ->
+        assert selfPID == Map.get(routingtable, selfPID)
+        assert umleitenPID == Map.get(routingtable, umleitenPID)
+        assert nil== Map.get(routingtable, :v1)
+        assert 1 == Map.get(hoptb, selfPID)
+        assert 3 == Map.get(hoptb, umleitenPID)
+        assert nil == Map.get(hoptb, :v1)
+    end
   end
 
   @tag timeout: 3000
   test "lösche einen Knotenroter" do
-    nil
+    selfPID = self()
+    #Baue zwei weitere Kannten mit e1 selfPID, umleitenPID und e2 umleitenPID, :v1
+    {con_pid,umleitenPID } = startup_zu_loeschen(selfPID)
+    e1 = %Graph.Edge{v1: selfPID, v2: umleitenPID}
+
+    delknoten = %Message{
+      receiver: self(),
+      sender: self(),
+      type: :del_link,
+      data: e1,
+      size: 4
+    }
+    send con_pid, {:con_remove_link, delknoten}
+    receive do
+      {:rout_broadcast, m = %Message{}} ->
+        assert m == delknoten
+    end
+    receive do
+      {:rout_set_routingtable, ^con_pid, routingtable, hoptb } ->
+        assert selfPID == Map.get(routingtable, selfPID)
+        assert nil == Map.get(routingtable, umleitenPID)
+        assert nil== Map.get(routingtable, :v1)
+        assert 1 == Map.get(hoptb, selfPID)
+        assert nil == Map.get(hoptb, umleitenPID)
+        assert nil == Map.get(hoptb, :v1)
+    end
   end
 
   def startup(selfPID) do
@@ -306,6 +355,6 @@ defmodule ConectionTest do
       {:rout_set_routingtable, ^con_pid, _routingtable, _hoptb} ->
         nil
     end
-    con_pid
+    {con_pid,umleitenPID }
   end
 end
