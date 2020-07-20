@@ -2,48 +2,43 @@ defmodule RouterTest do
   use ExUnit.Case, async: true
   doctest Router
 
-  @tag timeout: 1000
-  test "Link in Linktable gespeichert" do
+test "test" do
+  pid = spawn(fn -> Router.startrouter() end)
+
+  list = make_ring([pid], 10)
+
+  nm = %Message{
+    receiver: pid,
+    sender: List.first(list),
+    type: :message,
+    data: [%Graph.Edge{v1: pid, v2: List.first(list), weight: 3}],
+    size: 4
+  }
+  send List.first(list), {:packet, nm}
+
+  Process.sleep(1000)
+end
+
+
+
+  def make_ring(list, conter) do
     pid = spawn(fn -> Router.startrouter() end)
-    send(pid, {:new_link, 10, self()})
-    send(pid, {:get_kosten_zu_link, self(), self()})
 
-    receive do
-      {:kosten_zu_link, value, _link_pid, _pid} ->
-        assert value == 10
-    end
-  end
+    nlink = %Message{
+      receiver: self(),
+      sender: List.first(list),
+      type: :new_link,
+      data: [%Graph.Edge{v1: pid, v2: List.first(list), weight: 3}],
+      size: 4
+    }
+    send pid, {:packet, nlink}
 
-  @tag timeout: 1000
-  test "Link mit geänderten kosten in Linktabelle speichern" do
-    pid = spawn(fn -> Router.startrouter() end)
-    send(pid, {:new_link, 10, self()})
-    send(pid, {:get_kosten_zu_link, self(), self()})
-
-    receive do
-      {:kosten_zu_link, value, _link_pid, _pid} ->
-        assert value == 10
-    end
-
-    send(pid, {:new_link, 8, self()})
-    send(pid, {:get_kosten_zu_link, self(), self()})
-
-    receive do
-      {:kosten_zu_link, value, _link_pid, _pid} ->
-        assert value == 8
-    end
-  end
-
-  @tag timeout: 1000
-  test "Keine negativen Linkkosten" do
-    pid = spawn(fn -> Router.startrouter() end)
-    send(pid, {:new_link, 10, self()})
-    send(pid, {:new_link, -1, self()})
-    send(pid, {:get_kosten_zu_link, self(), self()})
-
-    receive do
-      {:kosten_zu_link, value, _link_pid, _pid} ->
-        assert value == 10
+    list1 = [pid| list]
+    if conter > 0 do
+      IO.puts(conter)
+      make_ring(list1, conter-1)
+    else
+      list1
     end
   end
 end

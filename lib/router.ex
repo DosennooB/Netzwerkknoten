@@ -1,52 +1,57 @@
 defmodule Router do
   def startrouter() do
-    router(%{}, %{})
+    self_pid = self()
+    routetbl_pid = spawn_link(fn -> Routingtable.start_routingtable() end)
+    con_pid = spawn_link(fn -> Conection.start_conection() end)
+
+    send con_pid, {:router_pid, self_pid}
+    send con_pid, {:routingtable_pid, routetbl_pid}
+
+    send routetbl_pid, {:conection_pid, con_pid}
+    router(con_pid, routetbl_pid)
   end
 
-  defp router(routingtable, links) do
+  defp router(con_pid, routetbl_pid) do
     receive do
-      {:new_link, link_kosten, knoten_pid} ->
+      {:packet, _x, msg = %Message{}} ->
         cond do
-          link_kosten > 0 ->
-            new_links = neuenLinkAnlegen(links, knoten_pid, link_kosten)
-            new_routingtable = neuenLinkInRoutingtable(routingtable, knoten_pid, link_kosten)
-            router(new_routingtable, new_links)
+          #muss noch besser ausgefüllt werden
+          msg.receiver == self() and  msg.type == :message ->
+            IO.inspect(self())
+            IO.puts("Recive message")
+            IO.inspect(msg.data)
+            send :tester, {:stopp}
+
+
+          msg.type == :message and msg.ttl > 0 ->
+            IO.inspect(self())
+            send routetbl_pid, {:rout_message, msg}
+
+          msg.type == :message and msg.ttl <= 0 ->
+            ttl = %Message{
+              receiver: msg.sender,
+              sender: self(),
+              type: :ttl_expired,
+              data: msg.data,
+              size: msg.size
+            }
+            send routetbl_pid,  {:rout_message, ttl}
+
+          msg.type == :ttl_expired and msg.ttl > 0 ->
+            send routetbl_pid, {:rout_message, msg}
+
+          msg.type == :new_link and msg.ttl > 0 ->
+            send con_pid, {:con_add_link, msg}
+
+          msg.type == :del_link and msg.ttl > 0 ->
+            send con_pid, {:con_remove_link, msg}
 
           true ->
-            router(routingtable, links)
+            IO.inspect(msg)
         end
-
-      {:get_kosten_zu_link, link_pid, rueck_pid} ->
-        send(rueck_pid, {:kosten_zu_link, Map.get(links, link_pid), link_pid, self()})
-        router(routingtable, links)
-
-      {:get_kosten_zu_ziel, ziel_pid, rueck_pid} ->
-        send(
-          rueck_pid,
-          {:kosten_zu_ziel, Map.get(routingtable, ziel_pid)[:kosten], ziel_pid, self()}
-        )
-
-        router(routingtable, links)
+        router(con_pid, routetbl_pid)
     end
+    IO.puts("Router beendet sich")
   end
 
-  def neuenLinkAnlegen(links, knoten_pid, link_kosten) do
-    Map.put(links, knoten_pid, link_kosten)
-  end
-
-  def neuenLinkInRoutingtable(routingtable, ziel_pid, link_kosten) do
-    cond do
-      !Map.has_key?(routingtable, ziel_pid) ->
-        Map.put(routingtable, ziel_pid, kosten: link_kosten, hop: ziel_pid)
-
-      Map.get(routingtable, ziel_pid)[:hop] == ziel_pid ->
-        put_in(routingtable[ziel_pid][:kosten], link_kosten)
-
-      Map.get(routingtable, ziel_pid)[:kosten] > link_kosten ->
-        Map.put(routingtable, ziel_pid, kosten: link_kosten, hop: ziel_pid)
-
-      true ->
-        routingtable
-    end
-  end
 end
