@@ -17,7 +17,7 @@ defmodule ConectionTest do
 
     receive do
       {:rout_broadcast, value = %Message{}} ->
-        assert value.data == e
+        assert value.data == [e]
     end
 
     receive do
@@ -42,7 +42,7 @@ defmodule ConectionTest do
 
     receive do
       {:rout_broadcast, value = %Message{}} ->
-        assert value.data == e
+        assert value.data == [e]
     end
 
     receive do
@@ -70,7 +70,7 @@ defmodule ConectionTest do
     # erster broadcast
     receive do
       {:rout_broadcast, value = %Message{}} ->
-        assert value.data == e
+        assert value.data == [e]
     end
 
     receive do
@@ -98,12 +98,12 @@ defmodule ConectionTest do
 
     receive do
       {:rout_broadcast, value = %Message{}} ->
-        assert value.data == e
+        assert value.data == [e]
     end
 
     # dem neuen Link werden alle edges geschickt
     receive do
-      {:rout_broadcast, value = %Message{}} ->
+      {:rout_message, value = %Message{}} ->
         edges = value.data
         assert Enum.member?(edges, e)
         def = %Graph.Edge{v1: selfPID, v2: selfPID}
@@ -147,21 +147,20 @@ defmodule ConectionTest do
     end
 
     receive do
-      {:rout_broadcast, _value = %Message{}} ->
-        nil
-    end
-
-    receive do
       {:rout_set_routingtable, ^con_pid, _routingtable, _hoptb} ->
         nil
     end
 
+    receive do
+      {:rout_message, _value = %Message{}} ->
+        nil
+    end
     # zweiter link
     send(con_pid, {:con_add_link, nlink2})
 
     receive do
       {:rout_broadcast, value = %Message{}} ->
-        assert value.data == e2
+        assert value.data == [e2]
     end
 
     receive do
@@ -200,12 +199,12 @@ defmodule ConectionTest do
 
     receive do
       {:rout_broadcast, value = %Message{}} ->
-        assert value.data == e1
+        assert value.data == [e1]
     end
 
     receive do
       {:rout_broadcast, value = %Message{}} ->
-        assert value.data == e2
+        assert value.data == [e2]
     end
 
     receive do
@@ -352,7 +351,6 @@ defmodule ConectionTest do
     end
   end
 
-
   @tag timeout: 3000
   test "entferne eigene Router" do
     selfPID = self()
@@ -418,9 +416,9 @@ defmodule ConectionTest do
       {:rout_broadcast, _nlink = %Message{}} ->
         nil
     end
-
+    #edges senden
     receive do
-      {:rout_broadcast, _alledges = %Message{}} ->
+      {:rout_message, _alledges = %Message{}} ->
         nil
     end
 

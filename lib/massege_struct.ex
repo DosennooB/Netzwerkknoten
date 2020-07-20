@@ -9,7 +9,7 @@ defmodule Message do
     - ttl: Die maximale Hopp dauer
   """
   @doc """
-  type kann sein :new_link, :del_link
+  type kann sein :new_link, :del_link, :message, :ttl_expired
   """
   @type type :: atom()
   @enforce_keys [:receiver, :sender, :type]
