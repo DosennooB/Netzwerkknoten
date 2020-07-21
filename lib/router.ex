@@ -17,14 +17,10 @@ defmodule Router do
         cond do
           #muss noch besser ausgefüllt werden
           msg.receiver == self() and  msg.type == :message ->
-            IO.inspect(self())
-            IO.puts("Recive message")
-            IO.inspect(msg.data)
-            send :tester, {:stopp}
+            send :perant, {:message_recived, msg}
 
 
           msg.type == :message and msg.ttl > 0 ->
-            IO.inspect(self())
             send routetbl_pid, {:rout_message, msg}
 
           msg.type == :message and msg.ttl <= 0 ->
@@ -42,6 +38,14 @@ defmodule Router do
 
           msg.type == :new_link and msg.ttl > 0 ->
             send con_pid, {:con_add_link, msg}
+
+          msg.type == :del_router ->
+            cond do
+              msg.data == self() ->
+                exit(:router_shutdown)
+              msg.data != self() ->
+                send con_pid, {:con_remove_router, msg}
+            end
 
           msg.type == :del_link and msg.ttl > 0 ->
             send con_pid, {:con_remove_link, msg}
