@@ -17,6 +17,7 @@ defmodule Link_pid do
   """
 
   def start_link(link_pid, link_kost) do
+    Process.flag(:trap_exit, true)
     link(link_pid, link_kost)
   end
 
@@ -39,6 +40,16 @@ defmodule Link_pid do
         if pid != self() do
           link(link_pid, link_kost)
         end
+
+      {:EXIT, from, :router_shutdown} ->
+        delrouter = %Message{
+          receiver: from,
+          sender: from,
+          type: :del_router,
+          data: from,
+          size: 2
+        }
+        send link_pid, {:packet, self(), delrouter}
     end
   end
 end

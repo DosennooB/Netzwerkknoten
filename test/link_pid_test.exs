@@ -52,6 +52,50 @@ defmodule Link_pidTest do
         assert value == 1
     end
   end
+  #TODO test schreiben
+  @tag timeout: 3000
+  test "Link shutdown" do
+    self_pid = self()
+    pid = spawn(fn -> Link_pid.start_link(self_pid, 3) end)
+    delrouter = %Message{
+      receiver: self(),
+      sender: self(),
+      type: :del_router,
+      data: self(),
+      size: 2
+    }
+    Process.sleep(200)
+    Process.exit(pid, :router_shutdown)
+    receive do
+      {:packet, _self, msg} ->
+        assert msg == delrouter
+    end
+    assert not Process.alive?(pid)
+  end
+
+  @tag timeout: 3000
+  test "Router shutdown" do
+    self_pid = self()
+    pid1 = spawn(fn -> Link_pid.start_link(self_pid, 3) end)
+    pid2 = spawn(fn -> Process.link(pid1)
+    Process.sleep(3000)
+    end)
+
+    delrouter = %Message{
+      receiver: pid2,
+      sender: pid2,
+      type: :del_router,
+      data: pid2,
+      size: 2
+    }
+    Process.sleep(200)
+    Process.exit(pid2, :router_shutdown)
+    receive do
+      {:packet, _self, msg} ->
+        assert msg == delrouter
+    end
+    assert not Process.alive?(pid2)
+  end
 
   @tag timeout: 3000
   test "kill funktioniert" do
