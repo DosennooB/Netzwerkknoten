@@ -15,7 +15,6 @@ defmodule Router do
     receive do
       {:packet, _x, msg = %Message{}} ->
         cond do
-          #muss noch besser ausgefüllt werden
           msg.receiver == self() and  msg.type == :message ->
             send :perant, {:message_recived, msg}
 
@@ -42,6 +41,7 @@ defmodule Router do
           msg.type == :del_router ->
             cond do
               msg.data == self() ->
+                send :perant, {:router_shutdown, self()}
                 exit(:router_shutdown)
               msg.data != self() ->
                 send con_pid, {:con_remove_router, msg}

@@ -26,7 +26,7 @@ defmodule Routingtable do
 
   @doc """
   Startet den Prozess in dem es die PID des Prozesses connection bekommt und
-  und eine Touting tablle bekommet
+  und eine Routing tablle bekommet
   """
   def start_routingtable() do
     receive do

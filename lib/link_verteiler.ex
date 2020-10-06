@@ -45,7 +45,6 @@ defmodule Link_Verteiler do
         link_pid = Map.get(pidzuRouter, next_hop)
         send(link_pid, {:kill, link_pid})
         verteiler(Map.delete(pidzuRouter, next_hop))
-
     end
   end
 #TODO wenn ein fehler passiert an alle links das Kill Signal senden
